@@ -1,0 +1,95 @@
+import unittest
+import json
+import secretary_program as sp
+from mock import patch
+documents = []
+directories = {}
+
+
+@patch('secretary_program.documents', documents, create=True)
+@patch('secretary_program.directories', directories, create=True)
+class TestSecretaryProgram(unittest.TestCase):
+    def setUp(self):
+        with open('fixtures/documents.json', 'r', encoding='utf-8') as out_docs:
+            documents.extend(json.load(out_docs))
+        with open('fixtures/directories.json', 'r', encoding='utf-8') as out_dirs:
+            directories.update(json.load(out_dirs))
+        self.example_doc_set = {
+            'new_shelf': '33',
+            'new_doc': '22',
+            'doc': '11-2',
+            'new_type': 'permission',
+            'new_name': 'Коля Николаев'
+        }
+
+    def test_get_all_doc_owners_names(self):
+        print('id: {}'.format(self.id()))
+        self.assertIsInstance(sp.get_all_doc_owners_names(), set)
+        self.assertGreater(len(sp.get_all_doc_owners_names()), 0)
+
+    def test3_append_doc_to_shelf(self):
+        print('id: {}'.format(self.id()))
+        sp.append_doc_to_shelf(self.example_doc_set['new_doc'], self.example_doc_set['new_shelf'])
+        repository = directories.get(self.example_doc_set['new_shelf'])
+        self.assertEqual(repository[len(repository) - 1], self.example_doc_set['new_doc'])
+
+    def test2_add_new_shelf(self):
+        print('id: {}'.format(self.id()))
+        old_repository = len(directories)
+        sp.add_new_shelf(self.example_doc_set['new_shelf'])
+        new_repository = len(directories)
+        self.assertGreater(new_repository, old_repository)
+
+    def test_remove_doc_from_shelf(self):
+        print('id: {}'.format(self.id()))
+        for directory_number, directory_docs_list in directories.items():
+            if self.example_doc_set['doc'] in directory_docs_list:
+                shelf = directory_number
+        self.assertIn(self.example_doc_set['doc'], directories[shelf])
+        old_repository = len(directories[shelf])
+        sp.remove_doc_from_shelf(self.example_doc_set['doc'])
+        new_repository = len(directories[shelf])
+        self.assertNotIn(self.example_doc_set['doc'], directories[shelf])
+        self.assertLess(new_repository, old_repository)
+
+    def test1_delete_doc(self):
+        print('id: {}'.format(self.id()))
+        self.assertTrue(sp.check_document_existance(self.example_doc_set['doc']))
+        with patch('secretary_program.input', return_value=self.example_doc_set['doc']) as child1:
+            sp.delete_doc()
+        self.assertFalse(sp.check_document_existance(self.example_doc_set['doc']))
+
+    def test_get_doc_owner_name(self):
+        print('id: {}'.format(self.id()))
+        self.assertTrue(sp.check_document_existance(self.example_doc_set['doc']))
+        with patch('secretary_program.input', return_value=self.example_doc_set['doc']) as child1:
+            self.assertIsInstance(sp.get_doc_owner_name(), str)
+            self.assertIsNotNone(sp.get_doc_owner_name())
+
+    def test_show_all_docs_info(self):
+        print('id: {}'.format(self.id()))
+        self.assertIsNone(sp.show_all_docs_info())
+
+    def test_get_doc_shelf(self):
+        print('id: {}'.format(self.id()))
+        with patch('secretary_program.input', return_value=self.example_doc_set['doc']) as child1:
+            name = sp.get_doc_shelf()
+            self.assertIsInstance(name, str)
+            self.assertEqual(len(name), 1)
+
+    def test4_add_new_doc(self):
+        print('id: {}'.format(self.id()))
+        with patch('secretary_program.input', return_value=(self.example_doc_set['new_doc'],
+                self.example_doc_set['new_type'], self.example_doc_set['new_name'],
+                self.example_doc_set['new_shelf'])) as child1:
+            old_directories = len(directories)
+            old_documents = len(documents)
+            sp.add_new_doc()
+            new_directories = len(directories)
+            new_documents = len(documents)
+            self.assertGreater(new_directories, old_directories)
+            self.assertGreater(new_documents, old_documents)
+
+
+if __name__ == '__main__':
+    unittest.main()
