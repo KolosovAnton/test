@@ -1,0 +1,28 @@
+import unittest
+import yandex_translator as yt
+from mock import patch
+
+
+class TestYandexAPI(unittest.TestCase):
+    def setUp(self):
+        self.example_set = {
+            'true_lang': 'en',
+            'false_lang': 'engl',
+            'to_lang': 'ru',
+        }
+
+    def test_response_200(self):
+        print('id: {}'.format(self.id()))
+        with patch('yandex_translator.input', return_value=self.example_set['true_lang']) as child1:
+            self.assertEqual(yt.translating()[0], 200)
+        # print('Код ответа соответствует {}\nрезультат перевода правильный - {}'.format(yt.translating()[0],
+        #                                                                                yt.translating()[1]))
+
+    def test_response_502(self):
+        print('id: {}'.format(self.id()))
+        with patch('yandex_translator.input', return_value=self.example_set['false_lang']) as child1:
+            self.assertRaises(KeyError, yt.translating())
+
+
+if __name__ == '__main__':
+    unittest.main()
