@@ -1,0 +1,27 @@
+import requests
+
+
+def translating(to_lang='ru', text='Hi'):
+    lang = input('Введите с какого языка переводим (в виде - en): ')
+    to_lang = input('Введите на какой язык переводим (в виде - ru): ')
+    text = input('Введите текст для перевода: ')
+
+    API_KEY = 'trnsl.1.1.20190508T112551Z.07ad023895430789.09b15005501f1f9edb1c1c725604d950c82db3fd'
+    URL = r'https://translate.yandex.net/api/v1.5/tr.json/translate'
+    params = {
+        'lang': '{}-{}'.format(lang, to_lang),
+        'key': API_KEY,
+        'text': text
+    }
+    response = requests.get(URL, params=params)
+    json_ = response.json()
+    code_response = json_['code']
+    translation_text = ''.join(json_['text'])
+    with open('translation_{}-{}.txt'.format(lang, to_lang), 'w') as f:
+        f.write(translation_text + '\n')
+        f.write('Переведено сервисом «Яндекс.Переводчик» http://translate.yandex.ru/')
+    return code_response, translation_text
+
+
+if __name__ == '__main__':
+    translating()
